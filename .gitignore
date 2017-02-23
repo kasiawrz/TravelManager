@@ -1,0 +1,7 @@
+node_modules
+.sass-cache/*
+.idea/*
+gulpfile.js
+app/*
+package.json
+npm-debug.log
