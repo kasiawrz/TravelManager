@@ -3,76 +3,119 @@
 function initMap() {
 
     var map = new google.maps.Map(document.getElementById('map'), {
-        center: new google.maps.LatLng(50.05, 14.25),
-        zoom: 4,
-        // mapTypeId: google.maps.MapTypeId.HYBRID
+        center: {lat: 50.05, lng: 14.25},
+        zoom: 4
     });
 
     var input = document.getElementById('pac-input');
 
-    var autocomplete = new google.maps.places.Autocomplete(
-        input, {
-            types: ['cities']
-        });
+    input.value = "";
+    input.setAttribute('placeholder', 'where do you want to go next?')
+
+
+    var types = document.getElementById('type-selector');
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(types);
+
+    var autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['geocode']
+        // types: ['cities']
+    });
+
 
     autocomplete.bindTo('bounds', map);
 
-    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
-    var infowindow = new google.maps.InfoWindow({
-        content: 'nanan'
-    });;
-
-    //var infowindowContent = document.getElementById('infowindow-content');
-    //infowindow.setContent(infowindowContent);
-    var geocoder = new google.maps.Geocoder;
     var marker = new google.maps.Marker({
         map: map,
-        draggable: true
+        anchorPoint: new google.maps.Point(0, -29)
     });
 
-    /*  marker.addListener('click', function () {
-     infowindow.open(map, marker);
-     });*/
+    autocomplete.addListener('place_changed', function() {
 
-    //needs this var later to get place ID
-    placeId = null;
-
-    autocomplete.addListener('place_changed', function () {
-      //  infowindow.close();
+        marker.setVisible(false);
         var place = autocomplete.getPlace();
-
-        if (!place.place_id) {
+        if (!place.geometry) {
+            window.alert("Autocomplete's returned place contains no geometry");
             return;
         }
-        geocoder.geocode({'placeId': place.place_id}, function (results, status) {
 
-            if (status !== 'OK') {
-                window.alert('Geocoder failed due to: ' + status);
-                return;
-            }
-            map.setZoom(8);
-            map.setCenter(results[0].geometry.location);
-            // Set the position of the marker using the place ID and location.
-            marker.setPlace({
-                placeId: place.place_id,
-                location: results[0].geometry.location
-            });
+        console.log(place.place_id, '    placeID?');
 
-            marker.setVisible(true);
+        // If the place has a geometry, then present it on a map.
+        if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+        } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(7);
+        }
+        marker.setIcon(/** @type {google.maps.Icon} */({
+            url: place.icon,
+            size: new google.maps.Size(71, 71),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(17, 34),
+            scaledSize: new google.maps.Size(35, 35)
+        }));
 
-            return place;
-        });
+        marker.setPosition(place.geometry.location);
+        marker.setVisible(true);
 
         //returns placeId to get country ISO code later
         placeId = place.place_id;
         return placeId;
+
+        // var address = '';
+        // if (place.address_components) {
+        //     address = [
+        //         (place.address_components[0] && place.address_components[0].short_name || ''),
+        //         (place.address_components[1] && place.address_components[1].short_name || ''),
+        //         (place.address_components[2] && place.address_components[2].short_name || '')
+        //     ].join(' ');
+        // }
+
     });
 
+    // setupClickListener('changetype-all', []);
+    // setupClickListener('changetype-establishment', ['establishment']);
+    // setupClickListener('changetype-geocode', ['geocode']);
 }
+
+//     autocomplete.addListener('place_changed', function () {
+//         //  infowindow.close();
+//         var place = autocomplete.getPlace();
+//
+//         if (!place.place_id) {
+//             return;
+//         }
+//     });
+//         // geocoder.geocode({'placeId': place.place_id}, function (results, status) {
+//         //
+//         //     if (status !== 'OK') {
+//         //         window.alert('Geocoder failed due to: ' + status);
+//         //         return;
+//         //     }
+//         //     map.setZoom(8);
+//         //     map.setCenter(results[0].geometry.location);
+//         //     // Set the position of the marker using the place ID and location.
+//         //     marker.setPlace({
+//         //         placeId: place.place_id,
+//         //         location: results[0].geometry.location
+//         //     });
+//         //
+//         //     marker.setVisible(true);
+//         //
+//         //     return place;
+//         // });
+//
+//         //returns placeId to get country ISO code later
+//         placeId = place.place_id;
+//         return placeId;
+//     };
+
+
 
 
 document.addEventListener("DOMContentLoaded", function() {
+
 
     //config for firebase
     var config = {
@@ -214,9 +257,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
             console.log(myId, ' my Id');
 
+            parent.parentNode.removeChild(parent);
+
             app.database().ref('trips/'+userId+'/'+myId).remove();
 
-            parent.parentNode.removeChild(parent);
+            cover.style.display = 'none';
         });
 
         editBtn.addEventListener('click', function(){
@@ -323,11 +368,11 @@ document.addEventListener("DOMContentLoaded", function() {
     //getting input value as 'destination' in the form
     var mapInput = document.querySelector('#pac-input');
 
-    mapInput.addEventListener("blur", startForm);
+    mapInput.addEventListener("focusout", startForm);
 
     function startForm(){
 
-        console.log(placeId, '  place ID??');
+       // console.log(placeId, '  place ID??');
 
 
         formClass.style.display = 'flex';
@@ -406,7 +451,6 @@ document.addEventListener("DOMContentLoaded", function() {
         var newId = res.key;
 
 
-
         //display section with planned trips
         boxes.style.display = 'flex';
 
@@ -433,45 +477,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
         //add country to your list to display it on the map
         //getting ISO country code from Google place API
-        //countriesList +=;
         //
-        //
+
+
+
         // var APIurl = 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + placeId + '&key=AIzaSyBhAUkdhyD5wg48fIlcFB0Fpdyouh27UZI';
         //
-        // var oReq = new XMLHttpRequest();
-        // oReq.onload = function (e) {
-        //     results.innerHTML = e.target.response.message;
-        //     console.log(results, '    res');
-        // };
-        // oReq.open('GET', APIurl, true);
-        // oReq.responseType = 'json';
-        // oReq.send();
+        // fetch(APIurl)
+        //     .then(response => response.json())
+        //     .then(getCountryCode)
+        //     .catch(error => console.error(error.message));
+        //
+        // function getCountryCode(e) {
+        //     console.log(e);
+        // }
 
 
-        // var request = new XMLHttpRequest();
-        // request.open('GET', APIurl, true);
-        //
-        // request.onload = function() {
-        //     if (request.status >= 200 && request.status < 400) {
-        //         // Success!
-        //         var data = JSON.parse(request.responseText);
-        //
-        //         console.log(request.responseText, '   resp');
-        //         console.log(data, '   resp data');
-        //     } else {
-        //         // We reached our target server, but it returned an error
-        //         console.log('cos nie bangla 1');
-        //     }
-        // };
-        //
-        // request.onerror = function() {
-        //     // There was a connection error of some sort
-        //     console.log('cos nie bangla 1');
-        //
-        // };
-        //
-        // request.send();
-
+        //countriesList +=;
     }
 
     function createNewTrip () {
@@ -484,6 +506,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         return cloned;
     }
+
 
 });
 
