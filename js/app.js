@@ -156,16 +156,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
     myTrips.once("value", function(res) {
 
-        for ( myKey in res.val()){
+        for ( myKey in res.val()) {
 
-            var destVal = res.val()[myKey].destination,
-                imgAtrr = res.val()[myKey].picUrl,
-                toSeeVal = res.val()[myKey].toSee;
+            //one data holds use name instead of trip
+           if (myKey != 'name') {
 
-            //    thisId = res.val()[myKey].key;   WHAT IS THIS???!!!!
+                var destVal = res.val()[myKey].destination,
+                    imgAtrr = res.val()[myKey].picUrl,
+                    toSeeVal = res.val()[myKey].toSee;
 
-            //var trips is an item key from firebase
-            createAtriclesWithTrips(destVal, imgAtrr, toSeeVal, myKey);
+                //myKey is an ID of each trip
+                createAtriclesWithTrips(destVal, imgAtrr, toSeeVal, myKey);
+            }
+            else {
+               //nothing happen
+            }
         }
 
     }, function (err) {
@@ -192,7 +197,11 @@ document.addEventListener("DOMContentLoaded", function() {
         if (Array.isArray(toSeeVal)) {
 
             for (var i = 0; i < toSeeVal.length; i++) {
-                cloned.querySelector('.info').innerHTML += toSeeVal[i] + '<br>';
+
+                //avoiding situation when some input has been deleted
+               if (toSeeVal[i]) {
+                    cloned.querySelector('.info').innerHTML += toSeeVal[i] + '<br>';
+                }
             }
         }
         else {
@@ -258,10 +267,13 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log(myId, ' my Id');
 
             parent.parentNode.removeChild(parent);
+            console.log('child del');
+            console.log(cover, '?/');
 
             app.database().ref('trips/'+userId+'/'+myId).remove();
 
             cover.style.display = 'none';
+            console.log(cover, '?/');
         });
 
         editBtn.addEventListener('click', function(){
@@ -348,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }
 
-        (this).addEventListener('click', closeWindow, true);
+        (this).addEventListener('click', closeWindow, false);
         // editBtn.removeEventListener('click', closeWindow); nie działa :(
 
         (this).removeEventListener('click', centreTrip);
@@ -475,10 +487,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         window.scrollTo(0, document.body.offsetHeight - window.innerHeight);
 
-        //add country to your list to display it on the map
+        //add to the list of countries to display it on the map
         //getting ISO country code from Google place API
-        //
-
 
 
         // var APIurl = 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + placeId + '&key=AIzaSyBhAUkdhyD5wg48fIlcFB0Fpdyouh27UZI';
