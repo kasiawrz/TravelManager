@@ -185,7 +185,8 @@ document.addEventListener("DOMContentLoaded", function() {
         //createNewTrip(); instead:
         //clone trip divs template
         var singleTrip = document.querySelector('.trip'),
-            cloned = singleTrip.cloneNode(true);
+            cloned = singleTrip.cloneNode(true),
+            infoBox =  cloned.querySelector('.info');
 
         cloned.setAttribute('id', tripID);
 
@@ -200,12 +201,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 //avoiding situation when some input has been deleted
                if (toSeeVal[i]) {
-                    cloned.querySelector('.info').innerHTML += toSeeVal[i] + '<br>';
+                   infoBox.innerHTML += toSeeVal[i] + '<br>';
                 }
             }
         }
+        else if (typeof(toSeeVal) === 'string') {
+            infoBox.innerText = toSeeVal;
+        }
         else {
-            cloned.querySelector('.info').innerText = toSeeVal;
+            infoBox.innerHTML = "dont't know yet";
         }
 
         TripBoxListener();
@@ -264,11 +268,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var parent = delBtn.parentNode,
                 myId = parent.getAttribute('id');
 
-            console.log(myId, ' my Id');
-
             parent.parentNode.removeChild(parent);
-            console.log('child del');
-            console.log(cover, '?/');
 
             app.database().ref('trips/'+userId+'/'+myId).remove();
 
@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (toDoAll[i].value !== "") {
                     toDoArr.push(toDoAll[i].value);
                 } else {
-                    console.log(this, '  i was empty');
+                    //ignore empty imputs
                 }
             }
 
@@ -491,19 +491,63 @@ document.addEventListener("DOMContentLoaded", function() {
         //getting ISO country code from Google place API
 
 
-        // var APIurl = 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + placeId + '&key=AIzaSyBhAUkdhyD5wg48fIlcFB0Fpdyouh27UZI';
-        //
-        // fetch(APIurl)
-        //     .then(response => response.json())
-        //     .then(getCountryCode)
-        //     .catch(error => console.error(error.message));
-        //
-        // function getCountryCode(e) {
-        //     console.log(e);
-        // }
+        var APIurl = 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + placeId + '&key=AIzaSyBhAUkdhyD5wg48fIlcFB0Fpdyouh27UZI';
 
+        console.log(APIurl, '   apiurl');
+
+        fetch(APIurl)
+            .then(response => response.json(), console.log('first step'))
+            .then(data => console.log('2nd step'), getCountryCode);
+           // .catch(error => console.error(error.message));
+
+        function getCountryCode(e) {
+            console.log(e.result);
+            console.log(response);
+
+        }
+        // var myTrips = app.database().ref('trips/'+userId);
+        //
+        // myTrips.once("value", function(res) {
+        //
+        //     for ( myKey in res.val()) {
+        //
+        //         //one data holds use name instead of trip
+        //         if (myKey != 'name') {
+        //
+        //             var destVal = res.val()[myKey].destination,
+        //                 imgAtrr = res.val()[myKey].picUrl,
+        //                 toSeeVal = res.val()[myKey].toSee;
+        //
+        //             //myKey is an ID of each trip
+        //             createAtriclesWithTrips(destVal, imgAtrr, toSeeVal, myKey);
+        //         }
+        //         else {
+        //             //nothing happen
+        //         }
+        //     }
+        //
+        // }, function (err) {
+        //
+        //     console.log("Error: " + err.code);
+        //
+        // });
 
         //countriesList +=;
+
+        placeDetailsByPlaceId(placeId);
+
+        function placeDetailsByPlaceId(placeId) {
+
+            service.getDetails(request, function () {
+                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                    console.log(placeId, 'id w fn');
+                    // map.panTo(place.geometry.location);
+                }
+            });
+        }
+
+
+
     }
 
     function createNewTrip () {
