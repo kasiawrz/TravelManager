@@ -1,6 +1,6 @@
 The app functionality is to store your ideas for all your next trips.
 
-Write your next trip destination name in the input. The app will take you to the form then, where you can leave a picture of the destination and write acctivities to do there or specific places to see.  
+Write your next trip destination name in the input. The app will take you to the form, where you can leave a picture of the destination and write acctivities to do there or specific places to see.  
 
 All trips will be remembered for your device.
 
